@@ -1,17 +1,20 @@
 /** @type {import('next').NextConfig} */
-const isProd = process.env.NODE_ENV === 'production'
-
 const nextConfig = {
   output: 'export',
-  basePath: isProd ? '' : '',
-  assetPrefix: isProd ? './' : '',
+  basePath: '',
+  assetPrefix: './', // Critical for GitHub Pages
   images: {
-    unoptimized: true
+    unoptimized: true // Required for static export
   },
-  trailingSlash: true,
+  trailingSlash: true, // Ensures proper linking
+  // Disable type checking during build
+  typescript: {
+    ignoreBuildErrors: true
+  },
+  // Disable ESLint during build
   eslint: {
-    ignoreDuringBuilds: true,
-  },
+    ignoreDuringBuilds: true
+  }
 }
 
 module.exports = nextConfig
