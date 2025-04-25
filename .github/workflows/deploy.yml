@@ -1,0 +1,55 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Clean install
+        run: |
+          npm ci --legacy-peer-deps
+          npm install -g serve
+
+      - name: Build and Export
+        run: |
+          npm run build
+          npm run export
+          ls -la out/
+        env:
+          NEXT_PUBLIC_TRACKING_ID: ${{ secrets.NEXT_PUBLIC_TRACKING_ID }}
+          NEXT_PUBLIC_SERVICE_ID: ${{ secrets.NEXT_PUBLIC_SERVICE_ID }}
+          NEXT_PUBLIC_TEMPLATE_ID: ${{ secrets.NEXT_PUBLIC_TEMPLATE_ID }}
+          NEXT_PUBLIC_USER_ID: ${{ secrets.NEXT_PUBLIC_USER_ID }}
+
+      - name: Verify build locally
+        run: |
+          serve -s out -l 3000 & sleep 10
+          curl http://localhost:3000 | grep -q "Ubuntu" || exit 1
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          force_orphan: true
+          keep_files: false
+          enable_jekyll: false
+          cname: princekuvadiya.github.io
